@@ -1,57 +1,104 @@
 import Head from "next/head";
 import { useState } from "react";
 import styles from "./index.module.css";
+import Alert from '@mui/material/Alert';
+import LoadingButton from '@mui/lab/LoadingButton';
+import { ListItem, Typography } from "@mui/material";
+import Box from '@mui/material/Box';
+import List from '@mui/material/List';
 
 export default function Home() {
-  const [animalInput, setAnimalInput] = useState("");
+  const [questionInput, setQuestionInput] = useState("");
+  const [questions, setQuestions] = useState([]);
   const [result, setResult] = useState();
+  const [error, setError] = useState();
+  const [loading, setLoading] = useState(false);
+
+  function addQuestion(question) {
+    setQuestions((questions) => [...questions, question]);
+  }
+
+  function createMessagesFromQuestions() {
+    let messages = [
+      { role: "system", content: "You are a mental health assistant." },
+    ];
+    questions.forEach((question) => {
+      messages.push({ role: "user", content: question.question });
+      messages.push({ role: "assistant", content: question.answer });
+    });
+    messages.push({ role: "user", content: questionInput });
+    return messages;
+  }
 
   async function onSubmit(event) {
     event.preventDefault();
+    setError(null);
+    setLoading(true);
     try {
-      const response = await fetch("/api/generate", {
+      const messages = createMessagesFromQuestions();
+      const response = await fetch("/api/askgpt", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ animal: animalInput }),
+        body: JSON.stringify(messages),
       });
+      setLoading(false);
 
       const data = await response.json();
       if (response.status !== 200) {
         throw data.error || new Error(`Request failed with status ${response.status}`);
       }
-
+      addQuestion(
+        {
+          question: questionInput,
+          answer: data.result,
+        }
+      );
       setResult(data.result);
-      setAnimalInput("");
+      setQuestionInput("");
     } catch(error) {
-      // Consider implementing your own error handling logic here
       console.error(error);
-      alert(error.message);
+      setError(error);
     }
   }
 
   return (
     <div>
       <Head>
-        <title>OpenAI Quickstart</title>
+        <title>ChatGPT Local</title>
         <link rel="icon" href="/dog.png" />
       </Head>
 
       <main className={styles.main}>
         <img src="/dog.png" className={styles.icon} />
-        <h3>Name my pet</h3>
+        <h3>Ask GPT anything!</h3>
         <form onSubmit={onSubmit}>
           <input
             type="text"
-            name="animal"
-            placeholder="Enter an animal"
-            value={animalInput}
-            onChange={(e) => setAnimalInput(e.target.value)}
+            name="question"
+            placeholder="Enter a question"
+            value={questionInput}
+            onChange={(e) => setQuestionInput(e.target.value)}
           />
-          <input type="submit" value="Generate names" />
+          <LoadingButton
+            type="submit" variant="contained" loading={loading}
+            loadingPosition="end"
+          >
+            <span>Ask GPT</span>
+          </LoadingButton>
         </form>
-        <div className={styles.result}>{result}</div>
+        <Typography className={styles.result}>{result}</Typography>
+        { error &&
+          <Alert severity="error">{error.message}</Alert>
+        }
+        <Box>
+          <List>
+            {questions.map((question, index) => (
+              <ListItem key={`q-${index}`}>{question.question} : {question.answer}</ListItem>
+            ))}
+          </List>
+        </Box>
       </main>
     </div>
   );

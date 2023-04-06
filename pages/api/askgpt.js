@@ -20,16 +20,6 @@ export default async function (req, res) {
     return;
   }
 
-  // const question = req.body.question || '';
-  // if (question.trim().length === 0) {
-  //   res.status(400).json({
-  //     error: {
-  //       message: "Please enter a valid question",
-  //     }
-  //   });
-  //   return;
-  // }
-
   try {
     const instance = axios.create({
         baseURL: 'https://api.openai.com/v1',

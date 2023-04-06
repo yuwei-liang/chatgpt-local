@@ -1,9 +1,11 @@
+'use client';
+
 import Head from "next/head";
 import { useState } from "react";
-import styles from "./index.module.css";
+import styles from "./page.module.css";
 import Alert from '@mui/material/Alert';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { ListItem, Typography } from "@mui/material";
+import { Navbar, ListItem, Typography, Link } from "@mui/material";
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 
@@ -20,7 +22,7 @@ export default function Home() {
 
   function createMessagesFromQuestions() {
     let messages = [
-      { role: "system", content: "You are a mental health assistant." },
+      { role: "system", content: "You are a helpful assistant." },
     ];
     questions.forEach((question) => {
       messages.push({ role: "user", content: question.question });
@@ -65,12 +67,9 @@ export default function Home() {
 
   return (
     <div>
-      <Head>
-        <title>ChatGPT Local</title>
-        <link rel="icon" href="/dog.png" />
-      </Head>
-
       <main className={styles.main}>
+        <link rel="icon" href="/dog.png" />
+        <Link href="/tools/StringUtils">StringUtils</Link>
         <img src="/dog.png" className={styles.icon} />
         <h3>Ask GPT anything!</h3>
         <form onSubmit={onSubmit}>
